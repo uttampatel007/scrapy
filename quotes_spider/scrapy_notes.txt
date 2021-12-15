@@ -1,0 +1,102 @@
+$ pip install scrapy
+
+$ scrapy 
+
+$ scrapy startproject <project-name>
+
+$ scrapy genspider <file_name> <example.com>
+    - ex: $ scrapy genspider quotes https://quotes.toscrape.com/
+
+$ scrapy list
+    - to list all spiders
+
+$ scrapy crawl quotes
+
+
+-------------
+
+$ scrapy shell    or scrapy shell https://quotes.toscrape.com/
+
+>> url = 'https://quotes.toscrape.com/'
+>> fetch(url)
+>> response.body
+>> view(response)
+>> response.css('h1')
+>> response.css('h1).extract()
+>> response.xpath('//h1')
+>> response.xpath('//h1').extract()
+>> response.xpath('//h1/a').extract()
+>> response.xpath('//h1/a/text()').extract()
+>> response.xpath('//h1/a/text()').extract_first()
+>> response.xpath('//*[@class="tag-item"]/a/text()').extract_first()
+>> response.xpath('//*[@class="tag-item"]/a/text()').extract()
+
+-------------
+XPath Tips
+/html/body/li selects the <li> element within the <body> element.
+//li selects ALL <li> elements within the html.
+//li[@class="product"] selects ALL <li> elements that have attribute class="product" , i.e. <li class="product">.
+//li[contains(@class, "product")] selects ALL <li> elements that have attribute “class” that contains the string ”product”’, i.e. <li class="product name">, <li class="product pc">, <li class="product xy3">, etc.
+
+-------------
+>>> html_docs = '''
+... <html>
+...     <head>
+...         <title>
+...             Title of the page
+...         </title>
+...     </head>
+...     <body>
+...         <h1>H1 Tag</h1>
+...         <h2>H2 Tag with <a href="#">Link</a></h2>
+...         <p>First Paragraph</p>
+...         <p>Second Paragraph\</p>
+...     </body>
+... </html>
+... '''
+>>> from scrapy.selector import Selector
+>>> sel = Selector(text=html_docs)
+>>> sel.extract()
+'<html>\n    <head>\n        <title>\n            Title of the page\n        </title>\n    </head>\n    <body>\n        <h1>H1 Tag</h1>\n        <h2>H2 Tag with <a href="#">Link</a></h2>\n        <p>First Paragraph</p>\n        <p>Second Paragraph\\</p>\n    </body>\n</html>'
+>>> sel.xpath('/html/head/title')
+[<Selector xpath='/html/head/title' data='<title>\n            Title of the page...'>]
+>>> sel.xpath('/html/head/title').extract()
+['<title>\n            Title of the page\n        </title>']
+>>> sel.xpath('//title').extract()
+['<title>\n            Title of the page\n        </title>']
+>>> sel.xpath('//text()').extract()
+['\n    ', '\n        ', '\n            Title of the page\n        ', '\n    ', '\n    ', '\n        ', 'H1 Tag', '\n        ', 'H2 Tag with ', 'Link', '\n        ', 'First Paragraph', '\n        ', 'Second Paragraph\\', '\n    ', '\n']
+>>> sel.xpath('//html/body/p').extract()
+['<p>First Paragraph</p>', '<p>Second Paragraph\\</p>']
+>>> sel.xpath('//p').extract()
+['<p>First Paragraph</p>', '<p>Second Paragraph\\</p>']
+>>> sel.xpath('//p[1]').extract()
+['<p>First Paragraph</p>']
+>>> sel.xpath('//p[2]').extract()
+['<p>Second Paragraph\\</p>']
+>>> sel.xpath('//p[2]')[0].extract()
+'<p>Second Paragraph\\</p>'
+>>> sel.xpath('//p').extract()
+['<p>First Paragraph</p>', '<p>Second Paragraph\\</p>']
+>>> sel.xpath('//p/text()').extract()
+['First Paragraph', 'Second Paragraph\\']
+>>> sel.xpath('//h2').extract()
+['<h2>H2 Tag with <a href="#">Link</a></h2>']
+>>> sel.xpath('//h2/a').extract()
+['<a href="#">Link</a>']
+>>> sel.xpath('//h2/a/@href').extract()
+['#']
+>>> sel.css('h2')
+[<Selector xpath='descendant-or-self::h2' data='<h2>H2 Tag with <a href="#">Link</a><...'>]
+>>> sel.css('h2').extract()
+['<h2>H2 Tag with <a href="#">Link</a></h2>']
+
+------------------
+
+$ scrapy crawl quotes -o quotes_item.csv                     // to generate csv
+$ scrapy crawl quotes -o quotes_item.json                     // to generate json
+
+------------------
+
+items.py      --> for creating a structures response
+pipelines.py  --> for refining/processing response
